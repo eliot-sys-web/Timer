@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Timer</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Écran de saisie du code -->
+        <div class="screen code-screen active">
+            <div class="status-bar">
+                <span class="time-status">9:41</span>
+            </div>
+            <div class="code-container">
+                <h2>Entrez votre code</h2>
+                <div class="code-display">
+                    <span id="codeDisplay">--</span>
+                </div>
+                <p class="hint">Nombre cible : <span id="targetNumber">50</span></p>
+                <div class="numpad">
+                    <button class="num-btn" data-num="1">1</button>
+                    <button class="num-btn" data-num="2">2</button>
+                    <button class="num-btn" data-num="3">3</button>
+                    <button class="num-btn" data-num="4">4</button>
+                    <button class="num-btn" data-num="5">5</button>
+                    <button class="num-btn" data-num="6">6</button>
+                    <button class="num-btn" data-num="7">7</button>
+                    <button class="num-btn" data-num="8">8</button>
+                    <button class="num-btn" data-num="9">9</button>
+                    <button class="num-btn clear" data-num="C">C</button>
+                    <button class="num-btn" data-num="0">0</button>
+                    <button class="num-btn validate" data-num="OK">✓</button>
+                </div>
+                <button class="settings-btn" id="settingsBtn">⚙️ Réglages</button>
+            </div>
+        </div>
+
+        <!-- Écran des réglages -->
+        <div class="screen settings-screen">
+            <div class="status-bar">
+                <span class="time-status">9:41</span>
+            </div>
+            <div class="settings-container">
+                <button class="back-btn" id="backBtn">← Retour</button>
+                <h2>Réglages</h2>
+                <div class="setting-item">
+                    <label for="targetInput">Nombre cible (centièmes) :</label>
+                    <input type="number" id="targetInput" min="0" max="99" value="50">
+                </div>
+                <button class="save-btn" id="saveBtn">Sauvegarder</button>
+            </div>
+        </div>
+
+        <!-- Écran du timer -->
+        <div class="screen timer-screen">
+            <div class="status-bar">
+                <span class="time-status">9:41</span>
+            </div>
+            <div class="timer-container">
+                <div class="timer-display">
+                    <span id="timerDisplay">00:00.00</span>
+                </div>
+                <div class="timer-controls">
+                    <button class="control-btn reset-btn" id="resetBtn">
+                        <span>Réinitialiser</span>
+                    </button>
+                    <button class="control-btn start-btn" id="startStopBtn">
+                        <span>Démarrer</span>
+                    </button>
+                </div>
+                <div class="code-info">
+                    Code : <span id="codeInfo">--</span> | 
+                    Cible : <span id="targetInfo">--</span> | 
+                    Résultat : <span id="resultInfo">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
