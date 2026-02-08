@@ -1,150 +1,68 @@
-// Configuration
+let keypadImage = null;
+let timerImage = null;
 let targetNumber = 50;
-let enteredCode = '';
-let timerInterval = null;
-let startTime = 0;
-let elapsedTime = 0;
-let isRunning = false;
 
-// Éléments DOM
-const codeScreen = document.querySelector('.code-screen');
-const timerScreen = document.querySelector('.timer-screen');
-const codeDisplay = document.getElementById('codeDisplay');
-const currentCodeDisplay = document.getElementById('currentCode');
-const timerDisplay = document.getElementById('timerDisplay');
-const targetInput = document.getElementById('targetInput');
-const validateBtn = document.getElementById('validateBtn');
-const startStopBtn = document.getElementById('startStopBtn');
-const resetBtn = document.getElementById('resetBtn');
+const keypadUpload = document.getElementById('keypadUpload');
+const timerUpload = document.getElementById('timerUpload');
+const targetInput = document.getElementById('targetNumber');
+const launchBtn = document.getElementById('launchBtn');
 
-// Debug info
-const debugCode = document.getElementById('debugCode');
-const debugTarget = document.getElementById('debugTarget');
-const debugForced = document.getElementById('debugForced');
-
-// Navigation
-function showScreen(screenName) {
-    codeScreen.classList.remove('active');
-    timerScreen.classList.remove('active');
-    
-    if (screenName === 'code') {
-        codeScreen.classList.add('active');
-    } else if (screenName === 'timer') {
-        timerScreen.classList.add('active');
-    }
-}
-
-// Gestion du clavier
-document.querySelectorAll('.key-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const num = btn.dataset.num;
-        
-        if (num === 'C') {
-            enteredCode = '';
-        } else if (num === 'DEL') {
-            enteredCode = enteredCode.slice(0, -1);
-        } else {
-            if (enteredCode.length < 2) {
-                enteredCode += num;
-            }
-        }
-        
-        updateCodeDisplay();
-    });
-});
-
-function updateCodeDisplay() {
-    const display = enteredCode || '--';
-    codeDisplay.textContent = display;
-    currentCodeDisplay.textContent = display;
-    
-    // Activer/désactiver le bouton de validation
-    validateBtn.disabled = enteredCode.length === 0;
-}
-
-// Validation et passage au timer
-validateBtn.addEventListener('click', () => {
-    if (enteredCode.length > 0) {
-        targetNumber = parseInt(targetInput.value);
-        
-        const code = parseInt(enteredCode);
-        const forcedResult = calculateForcedCentiseconds(targetNumber, code);
-        
-        debugCode.textContent = code;
-        debugTarget.textContent = targetNumber;
-        debugForced.textContent = forcedResult;
-        
-        showScreen('timer');
+// Upload image clavier
+keypadUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            keypadImage = event.target.result;
+            showPreview('keypadPreview', keypadImage);
+            document.querySelector('label[for="keypadUpload"]').classList.add('has-image');
+            checkReadyToLaunch();
+        };
+        reader.readAsDataURL(file);
     }
 });
 
-// Calcul des centièmes forcés
-function calculateForcedCentiseconds(target, code) {
-    let result = target - code;
-    while (result < 0) result += 100;
-    while (result >= 100) result -= 100;
-    return result;
-}
-
-// Timer
-function formatTime(ms, forcedCentiseconds = null) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const centiseconds = forcedCentiseconds !== null 
-        ? forcedCentiseconds 
-        : Math.floor((ms % 1000) / 10);
-    
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
-}
-
-function updateTimer() {
-    const now = Date.now();
-    elapsedTime = now - startTime;
-    timerDisplay.textContent = formatTime(elapsedTime);
-}
-
-// Bouton Start/Stop
-startStopBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    
-    if (!isRunning) {
-        // Démarrer
-        startTime = Date.now() - elapsedTime;
-        timerInterval = setInterval(updateTimer, 10);
-        isRunning = true;
-    } else {
-        // Arrêter avec centièmes truqués
-        clearInterval(timerInterval);
-        isRunning = false;
-        
-        const code = parseInt(enteredCode);
-        const forcedCentiseconds = calculateForcedCentiseconds(targetNumber, code);
-        
-        timerDisplay.textContent = formatTime(elapsedTime, forcedCentiseconds);
+// Upload image timer
+timerUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            timerImage = event.target.result;
+            showPreview('timerPreview', timerImage);
+            document.querySelector('label[for="timerUpload"]').classList.add('has-image');
+            checkReadyToLaunch();
+        };
+        reader.readAsDataURL(file);
     }
 });
 
-// Bouton Reset
-resetBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    
-    clearInterval(timerInterval);
-    isRunning = false;
-    elapsedTime = 0;
-    timerDisplay.textContent = '00:00.00';
-    
-    // Retour à l'écran de code
-    enteredCode = '';
-    updateCodeDisplay();
-    showScreen('code');
+// Nombre cible
+targetInput.addEventListener('input', (e) => {
+    targetNumber = parseInt(e.target.value) || 50;
+    checkReadyToLaunch();
 });
 
-// Initialisation
-updateCodeDisplay();
-
-// Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
+// Afficher preview
+function showPreview(containerId, imageSrc) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = `<img src="${imageSrc}" alt="Preview">`;
 }
+
+// Vérifier si prêt à lancer
+function checkReadyToLaunch() {
+    if (keypadImage && timerImage) {
+        launchBtn.disabled = false;
+    }
+}
+
+// Lancer l'app
+launchBtn.addEventListener('click', () => {
+    // Sauvegarder les données dans localStorage
+    localStorage.setItem('keypadImage', keypadImage);
+    localStorage.setItem('timerImage', timerImage);
+    localStorage.setItem('targetNumber', targetNumber);
+    
+    // Rediriger vers l'app
+    window.location.href = 'app.html';
+});
