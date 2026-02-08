@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Timer</title>
+    <link rel="stylesheet" href="./app-style.css">
+</head>
+<body>
+    <div class="app">
+        
+        <!-- ÉCRAN 1 : Saisie du code -->
+        <div class="screen code-screen active">
+            <div class="screenshot-container">
+                <img id="keypadScreenshot" alt="Clavier" class="screenshot">
+                
+                <div class="interactive-overlay">
+                    <!-- Affichage du code -->
+                    <div class="code-display-overlay">
+                        <span id="codeDisplay">--</span>
+                    </div>
+                    
+                    <!-- Zones cliquables invisibles pour les touches -->
+                    <div class="keypad-grid">
+                        <button class="key-btn" data-num="1"></button>
+                        <button class="key-btn" data-num="2"></button>
+                        <button class="key-btn" data-num="3"></button>
+                        <button class="key-btn" data-num="4"></button>
+                        <button class="key-btn" data-num="5"></button>
+                        <button class="key-btn" data-num="6"></button>
+                        <button class="key-btn" data-num="7"></button>
+                        <button class="key-btn" data-num="8"></button>
+                        <button class="key-btn" data-num="9"></button>
+                        <button class="key-btn delete" data-action="delete"></button>
+                        <button class="key-btn" data-num="0"></button>
+                        <button class="key-btn validate" data-action="validate"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ÉCRAN 2 : Timer -->
+        <div class="screen timer-screen">
+            <div class="screenshot-container">
+                <img id="timerScreenshot" alt="Timer" class="screenshot">
+                
+                <div class="interactive-overlay">
+                    <!-- Affichage du timer -->
+                    <div class="timer-display-overlay">
+                        <span id="timerDisplay">00:00.00</span>
+                    </div>
+                    
+                    <!-- Zones cliquables pour les boutons -->
+                    <div class="timer-buttons">
+                        <button class="timer-btn" id="startStopBtn"></button>
+                        <button class="timer-btn" id="resetBtn"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="./app.js"></script>
+</body>
+</html>
