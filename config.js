@@ -1,68 +1,88 @@
-let keypadImage = null;
-let timerImage = null;
-let targetNumber = 50;
-
+// Éléments DOM
 const keypadUpload = document.getElementById('keypadUpload');
 const timerUpload = document.getElementById('timerUpload');
+const keypadPreview = document.getElementById('keypadPreview');
+const timerPreview = document.getElementById('timerPreview');
 const targetInput = document.getElementById('targetNumber');
 const launchBtn = document.getElementById('launchBtn');
 
-// Upload image clavier
+// Variables pour stocker les images
+let keypadImage = null;
+let timerImage = null;
+
+// Upload capture clavier
 keypadUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
             keypadImage = event.target.result;
-            showPreview('keypadPreview', keypadImage);
-            document.querySelector('label[for="keypadUpload"]').classList.add('has-image');
-            checkReadyToLaunch();
+            keypadPreview.innerHTML = `
+                <img src="${keypadImage}" alt="Keypad preview">
+                <div class="preview-check">✓</div>
+            `;
+            checkLaunchReady();
         };
         reader.readAsDataURL(file);
     }
 });
 
-// Upload image timer
+// Upload capture timer
 timerUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
             timerImage = event.target.result;
-            showPreview('timerPreview', timerImage);
-            document.querySelector('label[for="timerUpload"]').classList.add('has-image');
-            checkReadyToLaunch();
+            timerPreview.innerHTML = `
+                <img src="${timerImage}" alt="Timer preview">
+                <div class="preview-check">✓</div>
+            `;
+            checkLaunchReady();
         };
         reader.readAsDataURL(file);
     }
 });
 
-// Nombre cible
-targetInput.addEventListener('input', (e) => {
-    targetNumber = parseInt(e.target.value) || 50;
-    checkReadyToLaunch();
-});
-
-// Afficher preview
-function showPreview(containerId, imageSrc) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = `<img src="${imageSrc}" alt="Preview">`;
-}
-
-// Vérifier si prêt à lancer
-function checkReadyToLaunch() {
+// Vérifier si on peut lancer
+function checkLaunchReady() {
     if (keypadImage && timerImage) {
         launchBtn.disabled = false;
+        launchBtn.classList.add('ready');
     }
 }
 
-// Lancer l'app
+// Validation du nombre cible
+targetInput.addEventListener('input', () => {
+    let value = parseInt(targetInput.value);
+    if (value < 0) targetInput.value = 0;
+    if (value > 99) targetInput.value = 99;
+});
+
+// Bouton Lancer
 launchBtn.addEventListener('click', () => {
-    // Sauvegarder les données dans localStorage
-    localStorage.setItem('keypadImage', keypadImage);
-    localStorage.setItem('timerImage', timerImage);
-    localStorage.setItem('targetNumber', targetNumber);
+    console.log('CLIC LANCER'); // Debug
     
-    // Rediriger vers l'app
-    window.location.href = 'app.html';
+    if (keypadImage && timerImage) {
+        // Sauvegarder dans localStorage
+        localStorage.setItem('keypadImage', keypadImage);
+        localStorage.setItem('timerImage', timerImage);
+        localStorage.setItem('targetNumber', targetInput.value);
+        
+        console.log('Données sauvegardées:', {
+            keypad: keypadImage ? 'OK' : 'MANQUANT',
+            timer: timerImage ? 'OK' : 'MANQUANT',
+            target: targetInput.value
+        });
+        
+        // Redirection
+        window.location.href = './app.html';
+    } else {
+        alert('⚠️ Veuillez télécharger les 2 captures d\'écran');
+    }
+});
+
+// Afficher la valeur actuelle du nombre cible
+targetInput.addEventListener('input', () => {
+    document.querySelector('.target-display').textContent = targetInput.value;
 });
