@@ -7,68 +7,81 @@ let elapsedTime = 0;
 let isRunning = false;
 
 // Éléments DOM
-const screens = {
-    code: document.querySelector('.code-screen'),
-    settings: document.querySelector('.settings-screen'),
-    timer: document.querySelector('.timer-screen')
-};
-
+const codeScreen = document.querySelector('.code-screen');
+const timerScreen = document.querySelector('.timer-screen');
 const codeDisplay = document.getElementById('codeDisplay');
-const targetNumberDisplay = document.getElementById('targetNumber');
+const currentCodeDisplay = document.getElementById('currentCode');
 const timerDisplay = document.getElementById('timerDisplay');
+const targetInput = document.getElementById('targetInput');
+const validateBtn = document.getElementById('validateBtn');
 const startStopBtn = document.getElementById('startStopBtn');
 const resetBtn = document.getElementById('resetBtn');
-const codeInfo = document.getElementById('codeInfo');
-const targetInfo = document.getElementById('targetInfo');
-const resultInfo = document.getElementById('resultInfo');
-const settingsBtn = document.getElementById('settingsBtn');
-const backBtn = document.getElementById('backBtn');
-const saveBtn = document.getElementById('saveBtn');
-const targetInput = document.getElementById('targetInput');
 
-// Navigation entre écrans
+// Debug info
+const debugCode = document.getElementById('debugCode');
+const debugTarget = document.getElementById('debugTarget');
+const debugForced = document.getElementById('debugForced');
+
+// Navigation
 function showScreen(screenName) {
-    Object.values(screens).forEach(screen => screen.classList.remove('active'));
-    screens[screenName].classList.add('active');
+    codeScreen.classList.remove('active');
+    timerScreen.classList.remove('active');
+    
+    if (screenName === 'code') {
+        codeScreen.classList.add('active');
+    } else if (screenName === 'timer') {
+        timerScreen.classList.add('active');
+    }
 }
 
-// Pavé numérique
-document.querySelectorAll('.num-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+// Gestion du clavier
+document.querySelectorAll('.key-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
         const num = btn.dataset.num;
         
         if (num === 'C') {
             enteredCode = '';
-            codeDisplay.textContent = '--';
-        } else if (num === 'OK') {
-            if (enteredCode.length >= 1) {
-                validateCode();
-            }
+        } else if (num === 'DEL') {
+            enteredCode = enteredCode.slice(0, -1);
         } else {
             if (enteredCode.length < 2) {
                 enteredCode += num;
-                codeDisplay.textContent = enteredCode.padStart(2, '-');
             }
         }
+        
+        updateCodeDisplay();
     });
 });
 
-// Validation du code
-function validateCode() {
-    const code = parseInt(enteredCode);
-    const result = calculateForcedCentiseconds(targetNumber, code);
+function updateCodeDisplay() {
+    const display = enteredCode || '--';
+    codeDisplay.textContent = display;
+    currentCodeDisplay.textContent = display;
     
-    codeInfo.textContent = code;
-    targetInfo.textContent = targetNumber;
-    resultInfo.textContent = result;
-    
-    showScreen('timer');
+    // Activer/désactiver le bouton de validation
+    validateBtn.disabled = enteredCode.length === 0;
 }
+
+// Validation et passage au timer
+validateBtn.addEventListener('click', () => {
+    if (enteredCode.length > 0) {
+        targetNumber = parseInt(targetInput.value);
+        
+        const code = parseInt(enteredCode);
+        const forcedResult = calculateForcedCentiseconds(targetNumber, code);
+        
+        debugCode.textContent = code;
+        debugTarget.textContent = targetNumber;
+        debugForced.textContent = forcedResult;
+        
+        showScreen('timer');
+    }
+});
 
 // Calcul des centièmes forcés
 function calculateForcedCentiseconds(target, code) {
     let result = target - code;
-    // Assurer que le résultat est entre 0 et 99
     while (result < 0) result += 100;
     while (result >= 100) result -= 100;
     return result;
@@ -79,7 +92,9 @@ function formatTime(ms, forcedCentiseconds = null) {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    const centiseconds = forcedCentiseconds !== null ? forcedCentiseconds : Math.floor((ms % 1000) / 10);
+    const centiseconds = forcedCentiseconds !== null 
+        ? forcedCentiseconds 
+        : Math.floor((ms % 1000) / 10);
     
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
 }
@@ -87,89 +102,49 @@ function formatTime(ms, forcedCentiseconds = null) {
 function updateTimer() {
     const now = Date.now();
     elapsedTime = now - startTime;
-    
-    // Affichage normal pendant que le timer tourne
     timerDisplay.textContent = formatTime(elapsedTime);
 }
 
-startStopBtn.addEventListener('click', () => {
+// Bouton Start/Stop
+startStopBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    
     if (!isRunning) {
         // Démarrer
         startTime = Date.now() - elapsedTime;
         timerInterval = setInterval(updateTimer, 10);
         isRunning = true;
-        startStopBtn.classList.add('running');
-        startStopBtn.querySelector('span').textContent = 'Arrêter';
     } else {
-        // Arrêter avec centièmes forcés
+        // Arrêter avec centièmes truqués
         clearInterval(timerInterval);
         isRunning = false;
         
         const code = parseInt(enteredCode);
         const forcedCentiseconds = calculateForcedCentiseconds(targetNumber, code);
         
-        // Afficher avec les centièmes truqués
         timerDisplay.textContent = formatTime(elapsedTime, forcedCentiseconds);
-        
-        startStopBtn.classList.remove('running');
-        startStopBtn.querySelector('span').textContent = 'Démarrer';
     }
 });
 
-resetBtn.addEventListener('click', () => {
+// Bouton Reset
+resetBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    
     clearInterval(timerInterval);
     isRunning = false;
     elapsedTime = 0;
     timerDisplay.textContent = '00:00.00';
-    startStopBtn.classList.remove('running');
-    startStopBtn.querySelector('span').textContent = 'Démarrer';
     
     // Retour à l'écran de code
     enteredCode = '';
-    codeDisplay.textContent = '--';
+    updateCodeDisplay();
     showScreen('code');
 });
 
-// Réglages
-settingsBtn.addEventListener('click', () => {
-    targetInput.value = targetNumber;
-    showScreen('settings');
-});
+// Initialisation
+updateCodeDisplay();
 
-backBtn.addEventListener('click', () => {
-    showScreen('code');
-});
-
-saveBtn.addEventListener('click', () => {
-    const newTarget = parseInt(targetInput.value);
-    if (newTarget >= 0 && newTarget <= 99) {
-        targetNumber = newTarget;
-        targetNumberDisplay.textContent = targetNumber;
-        localStorage.setItem('targetNumber', targetNumber);
-        showScreen('code');
-    }
-});
-
-// Charger les paramètres sauvegardés
-const savedTarget = localStorage.getItem('targetNumber');
-if (savedTarget) {
-    targetNumber = parseInt(savedTarget);
-    targetNumberDisplay.textContent = targetNumber;
-}
-
-// Mise à jour de l'heure dans la barre de statut
-function updateStatusTime() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    document.querySelectorAll('.time-status').forEach(el => {
-        el.textContent = `${hours}:${minutes}`;
-    });
-}
-updateStatusTime();
-setInterval(updateStatusTime, 60000);
-
-// Service Worker pour PWA
+// Service Worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
 }
